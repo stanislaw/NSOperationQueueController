@@ -178,6 +178,10 @@
         if ([keyPath isEqualToString:@"isFinished"]) {
             [object removeObserver:self forKeyPath:@"isFinished"];
 
+            if ([self.delegate respondsToSelector:@selector(operationQueueController:didFinishOperation:)]) {
+                [self.delegate operationQueueController:self didFinishOperation:object];
+            }
+
             [self.runningOperations removeObject:object];
         }
     }

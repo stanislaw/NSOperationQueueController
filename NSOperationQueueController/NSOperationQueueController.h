@@ -13,11 +13,21 @@ typedef NS_ENUM(NSUInteger, NSOperationQueueControllerOrder) {
     NSOperationQueueControllerOrderAggressiveLIFO
 };
 
+@class NSOperationQueueController;
+
+@protocol NSOperationQueueControllerDelegate <NSObject>
+
+@optional
+- (void)operationQueueController:(NSOperationQueueController *)controller didFinishOperation:(NSOperation *)operation;
+
+@end
+
 @interface NSOperationQueueController : NSObject
 
 - (instancetype)initWithOperationQueue:(NSOperationQueue *)operationQueue;
-
 @property (strong, nonatomic) NSOperationQueue* operationQueue;
+
+@property (weak, nonatomic) id <NSOperationQueueControllerDelegate> delegate;
 
 @property NSOperationQueueControllerOrder order;
 
