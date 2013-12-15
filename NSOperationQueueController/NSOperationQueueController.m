@@ -156,6 +156,14 @@
                             forKeyPath:@"isFinished"
                                options:NSKeyValueObservingOptionNew
                                context:NULL];
+                [operation addObserver:self
+                            forKeyPath:@"isExecuting"
+                               options:NSKeyValueObservingOptionNew
+                               context:NULL];
+                [operation addObserver:self
+                            forKeyPath:@"isCancelled"
+                               options:NSKeyValueObservingOptionNew
+                               context:NULL];
 
                 [self.pendingOperations removeObjectAtIndex:firstReadyOperationIndex];
                 [self.runningOperations addObject:operation];
@@ -177,12 +185,26 @@
     @synchronized(self) {
         if ([keyPath isEqualToString:@"isFinished"]) {
             [object removeObserver:self forKeyPath:@"isFinished"];
+            [object removeObserver:self forKeyPath:@"isExecuting"];
+            [object removeObserver:self forKeyPath:@"isCancelled"];
 
-            if ([self.delegate respondsToSelector:@selector(operationQueueController:didFinishOperation:)]) {
-                [self.delegate operationQueueController:self didFinishOperation:object];
+            if ([self.delegate respondsToSelector:@selector(operationQueueController:operationDidFinish:)]) {
+                [self.delegate operationQueueController:self operationDidFinish:object];
             }
 
             [self.runningOperations removeObject:object];
+        }
+
+        else if ([keyPath isEqualToString:@"isExecuting"]) {
+            if ([self.delegate respondsToSelector:@selector(operationQueueController:operationDidStartExecuting:)]) {
+                [self.delegate operationQueueController:self operationDidStartExecuting:object];
+            }
+        }
+
+        else if ([keyPath isEqualToString:@"isCancelled"]) {
+            if ([self.delegate respondsToSelector:@selector(operationQueueController:operationDidCancel:)]) {
+                [self.delegate operationQueueController:self operationDidCancel:object];
+            }
         }
     }
 

@@ -18,7 +18,9 @@ typedef NS_ENUM(NSUInteger, NSOperationQueueControllerOrder) {
 @protocol NSOperationQueueControllerDelegate <NSObject>
 
 @optional
-- (void)operationQueueController:(NSOperationQueueController *)controller didFinishOperation:(NSOperation *)operation;
+- (void)operationQueueController:(NSOperationQueueController *)controller operationDidStartExecuting:(NSOperation *)operation;
+- (void)operationQueueController:(NSOperationQueueController *)controller operationDidFinish:(NSOperation *)operation;
+- (void)operationQueueController:(NSOperationQueueController *)controller operationDidCancel:(NSOperation *)operation;
 
 @end
 
