@@ -192,11 +192,11 @@
             [object removeObserver:self forKeyPath:@"isExecuting"];
             [object removeObserver:self forKeyPath:@"isCancelled"];
 
+            [self.runningOperations removeObject:object];
+
             if ([self.delegate respondsToSelector:@selector(operationQueueController:operationDidFinish:)]) {
                 [self.delegate operationQueueController:self operationDidFinish:object];
             }
-
-            [self.runningOperations removeObject:object];
         }
 
         else if ([keyPath isEqualToString:@"isExecuting"]) {
