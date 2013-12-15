@@ -114,6 +114,10 @@
 
 - (void)setSuspended:(BOOL)suspend {
     [self.operationQueue setSuspended:suspend];
+
+    if (suspend == NO) {
+        [self _runNextOperationIfExists];
+    }
 }
 
 - (void)cancelAllOperations {

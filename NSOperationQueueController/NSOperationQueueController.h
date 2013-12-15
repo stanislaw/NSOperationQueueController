@@ -29,7 +29,7 @@ typedef NS_ENUM(NSUInteger, NSOperationQueueControllerOrder) {
 - (instancetype)initWithOperationQueue:(NSOperationQueue *)operationQueue;
 @property (strong, nonatomic) NSOperationQueue* operationQueue;
 
-@property (weak, nonatomic) id <NSOperationQueueControllerDelegate> delegate;
+@property (strong, nonatomic) id <NSOperationQueueControllerDelegate> delegate;
 
 @property NSOperationQueueControllerOrder order;
 
