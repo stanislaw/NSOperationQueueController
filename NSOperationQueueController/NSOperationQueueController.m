@@ -28,6 +28,7 @@
     self.runningOperations = [NSMutableArray array];
 
     self.order = NSOperationQueueControllerOrderFIFO;
+    self.limit = 0;
 
     return self;
 }
@@ -35,6 +36,12 @@
 - (void)dealloc {
     self.pendingOperations = nil;
     self.runningOperations = nil;
+}
+
+- (NSOperationQueue *)operationQueue {
+    NSAssert(_operationQueue, nil);
+
+    return _operationQueue;
 }
 
 #pragma mark
@@ -54,11 +61,7 @@
 #pragma mark NSOperation
 
 - (NSUInteger)maxConcurrentOperationCount {
-    if (self.operationQueue) {
-        return self.operationQueue.maxConcurrentOperationCount;
-    } else {
-        return NSNotFound;
-    }
+    return self.operationQueue.maxConcurrentOperationCount;
 }
 
 - (void)addOperation:(NSOperation *)operation {
@@ -67,34 +70,25 @@
     }
 
     @synchronized(self) {
-        switch (self.order) {
-            case NSOperationQueueControllerOrderFIFO:
-                [self.pendingOperations addObject:operation];
+        if (self.limit > 0 && self.pendingOperations.count == self.limit) {
+            NSOperation *operationToCancelAndIgnore;
 
-                break;
+            if (self.order == NSOperationQueueControllerOrderFIFO) {
+                operationToCancelAndIgnore = self.pendingOperations.firstObject;
+            } else {
+                operationToCancelAndIgnore = self.pendingOperations.lastObject;
+            }
 
-            case NSOperationQueueControllerOrderLIFO:
-                [self.pendingOperations insertObject:operation atIndex:0];
+            [operationToCancelAndIgnore cancel];
 
-                break;
+            [self.pendingOperations removeObject:operationToCancelAndIgnore];
 
-            case NSOperationQueueControllerOrderAggressiveLIFO:
-                if (self.maxConcurrentOperationCount > 0 && self.maxConcurrentOperationCount != NSOperationQueueDefaultMaxConcurrentOperationCount && self.pendingOperations.count == self.maxConcurrentOperationCount) {
-                    NSOperation *operation = self.pendingOperations.lastObject;
-                    [self.pendingOperations removeObject:operation];
-
-                    [operation cancel];
-                }
-
-                [self.pendingOperations insertObject:operation atIndex:0];
-
-                break;
-                
-            default:
-                break;
+            [self.operationQueue addOperation:operationToCancelAndIgnore];
         }
+
+        [self.pendingOperations addObject:operation];
     }
-    
+
     [self _runNextOperationIfExists];
 }
 
@@ -105,11 +99,7 @@
 }
 
 - (BOOL)isSuspended {
-    if (self.operationQueue) {
-        return self.operationQueue.isSuspended;
-    } else {
-        return NO;
-    }
+    return self.operationQueue.isSuspended;
 }
 
 - (void)setSuspended:(BOOL)suspend {
@@ -122,9 +112,10 @@
 
 - (void)cancelAllOperations {
     @synchronized(self) {
-        [[self.pendingOperations copy] makeObjectsPerformSelector:@selector(cancel)];
-        [[self.runningOperations copy] makeObjectsPerformSelector:@selector(cancel)];
+        [self.pendingOperations makeObjectsPerformSelector:@selector(cancel)];
     }
+
+    [self.operationQueue cancelAllOperations];
 }
 
 - (void)cancelAndRunOutAllPendingOperations {
@@ -132,49 +123,6 @@
 
     for (NSOperation *operation in self.pendingOperations) {
         [self.operationQueue addOperation:operation];
-    }
-}
-
-#pragma mark
-#pragma mark Private
-
-- (void)_runNextOperationIfExists {
-    if (self.isSuspended) return;
-
-    @synchronized(self) {
-        if (self.pendingOperations.count > 0 && (self.runningOperations.count < self.maxConcurrentOperationCount || (self.maxConcurrentOperationCount == NSOperationQueueDefaultMaxConcurrentOperationCount))) {
-            NSUInteger firstReadyOperationIndex = [self.pendingOperations indexOfObjectPassingTest:^BOOL(NSOperation *operation, NSUInteger idx, BOOL *stop) {
-                if (operation.isReady) {
-                    *stop = YES;
-
-                    return YES;
-                } else {
-                    return NO;
-                }
-            }];
-
-            if (firstReadyOperationIndex != NSNotFound) {
-                NSOperation *operation = [self.pendingOperations objectAtIndex:firstReadyOperationIndex];
-
-                [operation addObserver:self
-                            forKeyPath:@"isFinished"
-                               options:NSKeyValueObservingOptionNew
-                               context:NULL];
-                [operation addObserver:self
-                            forKeyPath:@"isExecuting"
-                               options:NSKeyValueObservingOptionNew
-                               context:NULL];
-                [operation addObserver:self
-                            forKeyPath:@"isCancelled"
-                               options:NSKeyValueObservingOptionNew
-                               context:NULL];
-
-                [self.pendingOperations removeObjectAtIndex:firstReadyOperationIndex];
-                [self.runningOperations addObject:operation];
-
-                [self.operationQueue addOperation:operation];
-            };
-        }
     }
 }
 
@@ -230,6 +178,56 @@
 
 - (NSString *)debugDescription {
     return self.description;
+}
+
+#pragma mark
+#pragma mark Private (level 0)
+
+- (void)_runNextOperationIfExists {
+    if (self.isSuspended) return;
+
+    @synchronized(self) {
+        NSUInteger numberOfOperationsToRun = [self numberOfPendingOperationsToRun];
+        if (numberOfOperationsToRun == 0) return;
+
+        NSIndexSet *indexesOfOperationsToRun;
+
+        if (self.order == NSOperationQueueControllerOrderFIFO) {
+            indexesOfOperationsToRun = [NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, numberOfOperationsToRun)];
+        } else {
+            indexesOfOperationsToRun = [NSIndexSet indexSetWithIndexesInRange:NSMakeRange(self.pendingOperations.count - numberOfOperationsToRun, numberOfOperationsToRun)];
+        }
+
+        NSEnumerationOptions enumerationOptions = 0;
+
+        if (self.order != NSOperationQueueControllerOrderFIFO) {
+            enumerationOptions = NSEnumerationReverse;
+        }
+
+        [[self.pendingOperations copy] enumerateObjectsAtIndexes:indexesOfOperationsToRun options:enumerationOptions usingBlock:^(NSOperation *operation, NSUInteger idx, BOOL *stop) {
+            [operation addObserver:self
+                        forKeyPath:@"isFinished"
+                           options:NSKeyValueObservingOptionNew
+                           context:NULL];
+            [operation addObserver:self
+                        forKeyPath:@"isExecuting"
+                           options:NSKeyValueObservingOptionNew
+                           context:NULL];
+            [operation addObserver:self
+                        forKeyPath:@"isCancelled"
+                           options:NSKeyValueObservingOptionNew
+                           context:NULL];
+
+            [self.pendingOperations removeObjectAtIndex:idx];
+            [self.runningOperations addObject:operation];
+
+            [self.operationQueue addOperation:operation];
+        }];
+    }
+}
+
+- (NSUInteger)numberOfPendingOperationsToRun {
+    return numberOfPendingOperationsToRun(self.pendingOperations.count, self.runningOperations.count, self.maxConcurrentOperationCount);
 }
 
 @end

@@ -9,8 +9,7 @@
 
 typedef NS_ENUM(NSUInteger, NSOperationQueueControllerOrder) {
     NSOperationQueueControllerOrderFIFO = 0,
-    NSOperationQueueControllerOrderLIFO,
-    NSOperationQueueControllerOrderAggressiveLIFO
+    NSOperationQueueControllerOrderLIFO
 };
 
 @class NSOperationQueueController;
@@ -32,9 +31,9 @@ typedef NS_ENUM(NSUInteger, NSOperationQueueControllerOrder) {
 @property (strong, nonatomic) id <NSOperationQueueControllerDelegate> delegate;
 
 @property NSOperationQueueControllerOrder order;
+@property (nonatomic) NSUInteger limit;
 
 @property (readonly) NSUInteger operationCount;
-
 @property (readonly) NSUInteger maxConcurrentOperationCount;
 
 - (void)addOperationWithBlock:(void(^)(void))operationBlock;

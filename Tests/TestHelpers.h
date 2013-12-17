@@ -62,3 +62,69 @@ static inline void dispatch_once_and_next_time(dispatch_once_t *oncePredicate, d
         [onceBlock invoke];
     });
 }
+
+static dispatch_semaphore_t waitSemaphore;
+static int finishedOperationsCount = 0;
+
+
+@interface KeyValueObserver : NSObject
+@end
+
+@implementation KeyValueObserver
+
++ (instancetype)sharedObserver {
+    static KeyValueObserver *sharedObserver;
+
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        sharedObserver = [[self alloc] init];
+    });
+
+    return sharedObserver;
+}
+
+- (void)observeValueForKeyPath:(NSString *)keyPath
+                      ofObject:(id)object
+                        change:(NSDictionary *)change
+                       context:(void *)context {
+
+    @synchronized(self) {
+        if ([keyPath isEqual:@"isFinished"]) {
+            BOOL finished = (BOOL)[[change objectForKey:NSKeyValueChangeNewKey] integerValue];
+
+            if (finished == YES) {
+                [object removeObserver:self forKeyPath:@"isFinished"];
+                finishedOperationsCount++;
+            }
+        }
+    }
+}
+
+@end
+
+@interface NSNeverFinishBlockOperation : NSOperation
+@property (copy, nonatomic) void (^operationBlock)(void);
+@end
+
+@implementation NSNeverFinishBlockOperation
+
++ (instancetype)blockOperationWithBlock:(void (^)(void))block {
+    NSNeverFinishBlockOperation *neverFinishOperation = [[NSNeverFinishBlockOperation alloc] init];
+
+    neverFinishOperation.operationBlock = block;
+
+    return neverFinishOperation;
+}
+
+- (void)start {
+    [self main];
+}
+
+- (void)main {
+    [self.operationBlock invoke];
+}
+
+@end
+
+
+
