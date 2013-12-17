@@ -13,7 +13,7 @@
 		8657BDB9185D3B0400A97FA1 /* NSOQCDevelopmentApp.1 in CopyFiles */ = {isa = PBXBuildFile; fileRef = 8657BDB8185D3B0400A97FA1 /* NSOQCDevelopmentApp.1 */; };
 		8657BDC0185D3B5300A97FA1 /* SenTestingKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8657BDBF185D3B5300A97FA1 /* SenTestingKit.framework */; };
 		8657BDC6185D3ED500A97FA1 /* NSOperationQueueController.m in Sources */ = {isa = PBXBuildFile; fileRef = 8657BDC5185D3ED500A97FA1 /* NSOperationQueueController.m */; };
-		8657BDC9185D3EDE00A97FA1 /* COOperationQueueTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 8657BDC8185D3EDE00A97FA1 /* COOperationQueueTests.m */; };
+		8657BDC9185D3EDE00A97FA1 /* NSOperationQueueControllerTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 8657BDC8185D3EDE00A97FA1 /* NSOperationQueueControllerTests.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -39,7 +39,7 @@
 		8657BDBF185D3B5300A97FA1 /* SenTestingKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SenTestingKit.framework; path = Library/Frameworks/SenTestingKit.framework; sourceTree = DEVELOPER_DIR; };
 		8657BDC4185D3ED500A97FA1 /* NSOperationQueueController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NSOperationQueueController.h; sourceTree = "<group>"; };
 		8657BDC5185D3ED500A97FA1 /* NSOperationQueueController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSOperationQueueController.m; sourceTree = "<group>"; };
-		8657BDC8185D3EDE00A97FA1 /* COOperationQueueTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = COOperationQueueTests.m; sourceTree = "<group>"; };
+		8657BDC8185D3EDE00A97FA1 /* NSOperationQueueControllerTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSOperationQueueControllerTests.m; sourceTree = "<group>"; };
 		8657BDCA185D46B700A97FA1 /* TestHelpers.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestHelpers.h; sourceTree = "<group>"; };
 		8657BDCF185D49A600A97FA1 /* NSOperationQueueController_Private.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NSOperationQueueController_Private.h; sourceTree = "<group>"; };
 		A71EB05922074ACDB7587223 /* libPods-NSOQCDevelopmentApp.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-NSOQCDevelopmentApp.a"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -122,7 +122,7 @@
 			isa = PBXGroup;
 			children = (
 				8657BDCA185D46B700A97FA1 /* TestHelpers.h */,
-				8657BDC8185D3EDE00A97FA1 /* COOperationQueueTests.m */,
+				8657BDC8185D3EDE00A97FA1 /* NSOperationQueueControllerTests.m */,
 			);
 			name = Tests;
 			path = ../Tests;
@@ -222,7 +222,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				8657BDC9185D3EDE00A97FA1 /* COOperationQueueTests.m in Sources */,
+				8657BDC9185D3EDE00A97FA1 /* NSOperationQueueControllerTests.m in Sources */,
 				8657BDB5185D3B0400A97FA1 /* main.m in Sources */,
 				8657BDC6185D3ED500A97FA1 /* NSOperationQueueController.m in Sources */,
 			);

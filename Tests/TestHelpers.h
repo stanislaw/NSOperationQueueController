@@ -50,9 +50,6 @@ static inline void asynchronousJob(asyncronousBlock block) {
     dispatch_async(queue, block);
 }
 
-@interface SenTestCase (Helpers)
-@end
-
 static inline void dispatch_once_and_next_time(dispatch_once_t *oncePredicate, dispatch_block_t onceBlock, dispatch_block_t nextTimeBlock) {
     if (*oncePredicate) {
         [nextTimeBlock invoke];

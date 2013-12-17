@@ -16,12 +16,15 @@ beforeEach(^{
 
 describe(@"", ^{
     it(@"addOperationWithBlock", ^{
+        __block BOOL operationWasRun = NO;
+
         waitSemaphore = dispatch_semaphore_create(0);
 
         NSOperationQueue *operationQueue = [NSOperationQueue new];
 
         NSOperationQueueController *controller = [[NSOperationQueueController alloc] initWithOperationQueue:operationQueue];
         [controller addOperationWithBlock:^{
+            operationWasRun = YES;
             dispatch_semaphore_signal(waitSemaphore);
         }];
 
@@ -29,7 +32,7 @@ describe(@"", ^{
             CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0.05, YES);
         }
 
-        [[theValue(controller.runningOperations.count) should] equal:@(0)];
+        [[theValue(operationWasRun) should] beYes];
     });
 });
 
