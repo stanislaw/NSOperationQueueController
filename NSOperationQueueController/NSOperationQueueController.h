@@ -26,13 +26,16 @@ typedef NS_ENUM(NSUInteger, NSOperationQueueControllerOrder) {
 @interface NSOperationQueueController : NSObject
 
 - (instancetype)initWithOperationQueue:(NSOperationQueue *)operationQueue;
-@property (strong, nonatomic) NSOperationQueue* operationQueue;
 
 @property (strong, nonatomic) id <NSOperationQueueControllerDelegate> delegate;
 
+
+// Options
 @property NSOperationQueueControllerOrder order;
 @property (nonatomic) NSUInteger limit;
 
+
+// NSOperationQueue interface
 @property (readonly) NSUInteger operationCount;
 @property (readonly) NSUInteger maxConcurrentOperationCount;
 
@@ -42,7 +45,6 @@ typedef NS_ENUM(NSUInteger, NSOperationQueueControllerOrder) {
 - (void)cancelAllOperations;
 - (void)cancelAndRunOutAllPendingOperations;
 
-// Suspend / Resume
 @property (readonly) BOOL isSuspended;
 - (void)setSuspended:(BOOL)suspend;
 

@@ -16,8 +16,10 @@ static inline NSUInteger numberOfPendingOperationsToRun(NSUInteger source, NSUIn
 
 @interface NSOperationQueueController ()
 
+@property (strong, nonatomic) NSOperationQueue* operationQueue;
+
 @property (strong) NSMutableArray *pendingOperations;
-@property (strong) NSMutableArray *runningOperations;
+@property (strong) NSMutableArray *enqueuedOperations;
 
 - (void)_runNextOperationIfExists;
 - (NSUInteger)numberOfPendingOperationsToRun;

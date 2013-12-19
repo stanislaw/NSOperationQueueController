@@ -93,7 +93,7 @@ describe(@"maxConcurrentOperationCount == 1", ^{
         int countDown = 10;
         while (countDown-- > 0 ) {
             NSBlockOperation *operation = [NSBlockOperation blockOperationWithBlock:^{
-                [[theValue(controller.runningOperations.count) should] equal:@(1)];
+                [[theValue(controller.enqueuedOperations.count) should] equal:@(1)];
 
                 dispatch_async(dispatch_get_main_queue(), ^{
                     [registry addObject:@(1)];
@@ -304,10 +304,10 @@ describe(@"-[NSOperationQueueController addOperation:]", ^{
             }
 
             [[theValue(controller.pendingOperations.count) should] equal:@(2)];
-            [[theValue(controller.runningOperations.count) should] equal:@(2)];
+            [[theValue(controller.enqueuedOperations.count) should] equal:@(2)];
 
-            BOOL containsOperation1 = [controller.runningOperations containsObject:operation1];
-            BOOL containsOperation2 = [controller.runningOperations containsObject:operation2];
+            BOOL containsOperation1 = [controller.enqueuedOperations containsObject:operation1];
+            BOOL containsOperation2 = [controller.enqueuedOperations containsObject:operation2];
 
             BOOL containsOperation3 = [controller.pendingOperations containsObject:operation3];
             BOOL containsOperation4 = [controller.pendingOperations containsObject:operation4];

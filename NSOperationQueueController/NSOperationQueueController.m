@@ -11,21 +11,20 @@
 
 @implementation NSOperationQueueController
 
+- (id)init {
+    @throw [NSException exceptionWithName:NSGenericException reason:@"Must not run -[NSOperationQueueController init]. Use designated initializer -[NSOperationQueueController initWithOperationQueue:] instead!" userInfo:nil];
+    return nil;
+}
+
 - (instancetype)initWithOperationQueue:(NSOperationQueue *)operationQueue {
-    self = [self init];
+    self = [super init];
 
     if (self == nil) return nil;
 
     self.operationQueue = operationQueue;
 
-    return self;
-}
-
-- (id)init {
-    self = [super init];
-
     self.pendingOperations = [NSMutableArray array];
-    self.runningOperations = [NSMutableArray array];
+    self.enqueuedOperations = [NSMutableArray array];
 
     self.order = NSOperationQueueControllerOrderFIFO;
     self.limit = 0;
@@ -35,13 +34,7 @@
 
 - (void)dealloc {
     self.pendingOperations = nil;
-    self.runningOperations = nil;
-}
-
-- (NSOperationQueue *)operationQueue {
-    NSAssert(_operationQueue, nil);
-
-    return _operationQueue;
+    self.enqueuedOperations = nil;
 }
 
 #pragma mark
@@ -51,7 +44,7 @@
     NSUInteger operationCount;
 
     @synchronized(self) {
-        operationCount = self.pendingOperations.count + self.runningOperations.count;
+        operationCount = self.pendingOperations.count + self.enqueuedOperations.count;
     }
 
     return operationCount;
@@ -106,6 +99,8 @@
     [self.operationQueue setSuspended:suspend];
 
     if (suspend == NO) {
+        [self _triggerIsReadyChecksOnEnqueuedOperations];
+
         [self _runNextOperationIfExists];
     }
 }
@@ -140,7 +135,7 @@
             [object removeObserver:self forKeyPath:@"isExecuting"];
             [object removeObserver:self forKeyPath:@"isCancelled"];
 
-            [self.runningOperations removeObject:object];
+            [self.enqueuedOperations removeObject:object];
 
             if ([self.delegate respondsToSelector:@selector(operationQueueController:operationDidFinish:)]) {
                 [self.delegate operationQueueController:self operationDidFinish:object];
@@ -170,7 +165,7 @@
     NSString *description;
 
     @synchronized(self) {
-        description = [NSString stringWithFormat:@"%@ (\n\tisSuspended = %@,\n\toperationCount = %u,\n\tpendingOperations = %@,\n\trunningOperations = %@,\n)", super.description, self.isSuspended ? @"YES" : @"NO", (unsigned)self.operationCount, self.pendingOperations, self.runningOperations];
+        description = [NSString stringWithFormat:@"%@ (\n\tisSuspended = %@,\n\toperationCount = %u,\n\tpendingOperations = %@,\n\tenqueuedOperations = %@,\n)", super.description, self.isSuspended ? @"YES" : @"NO", (unsigned)self.operationCount, self.pendingOperations, self.enqueuedOperations];
     }
 
     return description;
@@ -219,15 +214,24 @@
                            context:NULL];
 
             [self.pendingOperations removeObjectAtIndex:idx];
-            [self.runningOperations addObject:operation];
+            [self.enqueuedOperations addObject:operation];
 
             [self.operationQueue addOperation:operation];
         }];
     }
 }
 
+- (void)_triggerIsReadyChecksOnEnqueuedOperations {
+    @synchronized(self) {
+        [self.enqueuedOperations enumerateObjectsUsingBlock:^(NSOperation *operation, NSUInteger idx, BOOL *stop) {
+            [operation willChangeValueForKey:@"isReady"];
+            [operation didChangeValueForKey:@"isReady"];
+        }];
+    }
+}
+
 - (NSUInteger)numberOfPendingOperationsToRun {
-    return numberOfPendingOperationsToRun(self.pendingOperations.count, self.runningOperations.count, self.maxConcurrentOperationCount);
+    return numberOfPendingOperationsToRun(self.pendingOperations.count, self.enqueuedOperations.count, self.maxConcurrentOperationCount);
 }
 
 @end
