@@ -199,7 +199,11 @@
             enumerationOptions = NSEnumerationReverse;
         }
 
-        [[self.pendingOperations copy] enumerateObjectsAtIndexes:indexesOfOperationsToRun options:enumerationOptions usingBlock:^(NSOperation *operation, NSUInteger idx, BOOL *stop) {
+        NSArray *operationsToEnqueue = [self.pendingOperations objectsAtIndexes:indexesOfOperationsToRun];
+
+        [self.pendingOperations removeObjectsAtIndexes:indexesOfOperationsToRun];
+
+        [operationsToEnqueue enumerateObjectsWithOptions:enumerationOptions usingBlock:^(NSOperation *operation, NSUInteger idx, BOOL *stop) {
             [operation addObserver:self
                         forKeyPath:@"isFinished"
                            options:NSKeyValueObservingOptionNew
@@ -213,7 +217,6 @@
                            options:NSKeyValueObservingOptionNew
                            context:NULL];
 
-            [self.pendingOperations removeObjectAtIndex:idx];
             [self.enqueuedOperations addObject:operation];
 
             [self.operationQueue addOperation:operation];
