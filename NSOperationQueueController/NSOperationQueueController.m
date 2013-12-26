@@ -143,8 +143,12 @@
         }
 
         else if ([keyPath isEqualToString:@"isExecuting"]) {
-            if ([self.delegate respondsToSelector:@selector(operationQueueController:operationDidStartExecuting:)]) {
-                [self.delegate operationQueueController:self operationDidStartExecuting:object];
+            BOOL newValue = [[change objectForKey:NSKeyValueChangeNewKey] boolValue];
+
+            if (newValue) {
+                if ([self.delegate respondsToSelector:@selector(operationQueueController:operationDidStartExecuting:)]) {
+                    [self.delegate operationQueueController:self operationDidStartExecuting:object];
+                }
             }
         }
 
